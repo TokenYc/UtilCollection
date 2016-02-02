@@ -3,6 +3,7 @@
 ####SharedPreferencesUtil
  - 简单封装SharedPreferences
  - 单例模式
+ 
 ####Utils
  - 6.0检查并请求权限
  - 拨打电话
