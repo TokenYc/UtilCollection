@@ -1,6 +1,7 @@
 package net.archeryc.utilcollection;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.KeyguardManager;
@@ -11,11 +12,18 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
 import java.util.List;
 
@@ -258,6 +266,508 @@ public class Utils {
             return true;
 
         }
+    }
+
+
+    /**
+     * 获取手机IMEI码，需要动态获取权限。
+     * <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+     *
+     * @param context
+     * @return
+     */
+    @TargetApi(Build.VERSION_CODES.CUPCAKE)
+
+    public static String getDeviceIMEI(Context context) {
+
+        String deviceId;
+
+        if (isPhone(context)) {
+
+            TelephonyManager telephony = (TelephonyManager) context
+
+                    .getSystemService(Context.TELEPHONY_SERVICE);
+
+            deviceId = telephony.getDeviceId();
+
+        } else {
+
+            deviceId = Settings.Secure.getString(context.getContentResolver(),
+
+                    Settings.Secure.ANDROID_ID);
+
+
+        }
+
+        return deviceId;
+
+    }
+
+    /**
+     * 获取Mac地址
+     *
+     * @param context
+     * @return
+     */
+    public static String getMacAddress(Context context) {
+
+        String macAddress;
+
+        WifiManager wifi = (WifiManager) context
+
+                .getSystemService(Context.WIFI_SERVICE);
+
+        WifiInfo info = wifi.getConnectionInfo();
+
+        macAddress = info.getMacAddress();
+
+        if (null == macAddress) {
+
+            return "";
+
+        }
+
+        macAddress = macAddress.replace(":", "");
+
+        return macAddress;
+
+    }
+
+
+    /**
+     * 获取当前版本号
+     *
+     * @param context
+     * @return
+     */
+    public static String getAppVersion(Context context) {
+
+        String version = "0";
+
+        try {
+
+            version = context.getPackageManager().getPackageInfo(
+
+                    context.getPackageName(), 0).versionName;
+
+        } catch (PackageManager.NameNotFoundException e) {
+
+            e.printStackTrace();
+
+        }
+
+        return version;
+
+    }
+
+
+    //判断是否有SD卡
+    public static boolean haveSDCard() {
+
+        return android.os.Environment.getExternalStorageState().equals(
+
+                android.os.Environment.MEDIA_MOUNTED);
+
+    }
+
+
+    /**
+     * 动态隐藏软键盘
+     *
+     * @param activity
+     */
+    @TargetApi(Build.VERSION_CODES.CUPCAKE)
+
+    public static void hideSoftInput(Activity activity) {
+
+        View view = activity.getWindow().peekDecorView();
+
+        if (view != null) {
+
+            InputMethodManager inputmanger = (InputMethodManager) activity
+
+                    .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+            inputmanger.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+        }
+
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.CUPCAKE)
+
+    public static void hideSoftInput(Context context, EditText edit) {
+
+        edit.clearFocus();
+
+        InputMethodManager inputmanger = (InputMethodManager) context
+
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        inputmanger.hideSoftInputFromWindow(edit.getWindowToken(), 0);
+
+    }
+
+
+    /**
+     * 动态显示软键盘
+     *
+     * @param context
+     * @param edit
+     */
+    @TargetApi(Build.VERSION_CODES.CUPCAKE)
+
+    public static void showSoftInput(Context context, EditText edit) {
+
+        edit.setFocusable(true);
+
+        edit.setFocusableInTouchMode(true);
+
+        edit.requestFocus();
+
+        InputMethodManager inputManager = (InputMethodManager) context
+
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        inputManager.showSoftInput(edit, 0);
+
+    }
+
+    /**
+     * 主动回到home
+     *
+     * @param context
+     */
+    public static void goHome(Context context) {
+
+        Intent mHomeIntent = new Intent(Intent.ACTION_MAIN);
+
+        mHomeIntent.addCategory(Intent.CATEGORY_HOME);
+
+        mHomeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+
+                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+
+        context.startActivity(mHomeIntent);
+
+    }
+
+
+    /**
+     * 判断手机连接的网络类型(2G,3G,4G)
+     * 联通的3G为UMTS或HSDPA，移动和联通的2G为GPRS或EGDE，电信的2G为CDMA，电信的3G为EVDO
+     */
+    public class Constants {
+
+        /**
+         * Unknown network class
+         */
+
+        public static final int NETWORK_CLASS_UNKNOWN = 0;
+
+
+        /**
+         * wifi net work
+         */
+
+        public static final int NETWORK_WIFI = 1;
+
+
+        /**
+         * "2G" networks
+         */
+
+        public static final int NETWORK_CLASS_2_G = 2;
+
+
+        /**
+         * "3G" networks
+         */
+
+        public static final int NETWORK_CLASS_3_G = 3;
+
+
+        /**
+         * "4G" networks
+         */
+
+        public static final int NETWORK_CLASS_4_G = 4;
+
+
+    }
+
+
+    public static int getNetWorkClass(Context context) {
+
+        TelephonyManager telephonyManager = (TelephonyManager) context
+
+                .getSystemService(Context.TELEPHONY_SERVICE);
+
+
+        switch (telephonyManager.getNetworkType()) {
+
+            case TelephonyManager.NETWORK_TYPE_GPRS:
+
+            case TelephonyManager.NETWORK_TYPE_EDGE:
+
+            case TelephonyManager.NETWORK_TYPE_CDMA:
+
+            case TelephonyManager.NETWORK_TYPE_1xRTT:
+
+            case TelephonyManager.NETWORK_TYPE_IDEN:
+
+                return Constants.NETWORK_CLASS_2_G;
+
+
+            case TelephonyManager.NETWORK_TYPE_UMTS:
+
+            case TelephonyManager.NETWORK_TYPE_EVDO_0:
+
+            case TelephonyManager.NETWORK_TYPE_EVDO_A:
+
+            case TelephonyManager.NETWORK_TYPE_HSDPA:
+
+            case TelephonyManager.NETWORK_TYPE_HSUPA:
+
+            case TelephonyManager.NETWORK_TYPE_HSPA:
+
+            case TelephonyManager.NETWORK_TYPE_EVDO_B:
+
+            case TelephonyManager.NETWORK_TYPE_EHRPD:
+
+            case TelephonyManager.NETWORK_TYPE_HSPAP:
+
+                return Constants.NETWORK_CLASS_3_G;
+
+
+            case TelephonyManager.NETWORK_TYPE_LTE:
+
+                return Constants.NETWORK_CLASS_4_G;
+
+
+            default:
+
+                return Constants.NETWORK_CLASS_UNKNOWN;
+
+        }
+    }
+
+    /**
+     * 判断当前手机的网络类型(WIFI还是2,3,4G)
+     *
+     * @param context
+     * @return
+     */
+    public static int getNetWorkStatus(Context context) {
+
+        int netWorkType = Constants.NETWORK_CLASS_UNKNOWN;
+
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) context
+
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+
+        if (networkInfo != null && networkInfo.isConnected()) {
+
+            int type = networkInfo.getType();
+
+
+            if (type == ConnectivityManager.TYPE_WIFI) {
+
+                netWorkType = Constants.NETWORK_WIFI;
+
+            } else if (type == ConnectivityManager.TYPE_MOBILE) {
+
+                netWorkType = getNetWorkClass(context);
+
+            }
+
+        }
+
+
+        return netWorkType;
+
+    }
+
+    /**
+     * px-dp转换
+     *
+     * @param context
+     * @param dpValue
+     * @return
+     */
+
+
+    public static int dip2px(Context context, float dpValue) {
+
+        final float scale = context.getResources().getDisplayMetrics().density;
+
+        return (int) (dpValue * scale + 0.5f);
+
+    }
+
+
+    public static int px2dip(Context context, float pxValue) {
+
+        final float scale = context.getResources().getDisplayMetrics().density;
+
+        return (int) (pxValue / scale + 0.5f);
+
+    }
+
+
+    /**
+     * px-sp转换
+     *
+     * @param context
+     * @param pxValue
+     * @return
+     */
+    public static int px2sp(Context context, float pxValue) {
+
+        final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
+
+        return (int) (pxValue / fontScale + 0.5f);
+
+    }
+
+
+    public static int sp2px(Context context, float spValue) {
+
+        final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
+
+        return (int) (spValue * fontScale + 0.5f);
+
+    }
+
+
+    /**
+     * 把一个毫秒数转化成时间字符串
+     *
+     * @param millis   要转化的毫秒数。
+     * @param isWhole  是否强制全部显示小时/分/秒/毫秒。
+     * @param isFormat 时间数字是否要格式化，如果true：少位数前面补全；如果false：少位数前面不补全。
+     * @return 返回时间字符串：小时/分/秒/毫秒的格式（如：24903600 --> 06小时55分03秒600毫秒）。
+     */
+
+    public static String millisToString(long millis, boolean isWhole,
+
+                                        boolean isFormat) {
+
+        String h = "";
+
+        String m = "";
+
+        String s = "";
+
+        String mi = "";
+
+        if (isWhole) {
+
+            h = isFormat ? "00小时" : "0小时";
+
+            m = isFormat ? "00分" : "0分";
+
+            s = isFormat ? "00秒" : "0秒";
+
+            mi = isFormat ? "00毫秒" : "0毫秒";
+
+        }
+
+
+        long temp = millis;
+
+
+        long hper = 60 * 60 * 1000;
+
+        long mper = 60 * 1000;
+
+        long sper = 1000;
+
+
+        if (temp / hper > 0) {
+
+            if (isFormat) {
+
+                h = temp / hper < 10 ? "0" + temp / hper : temp / hper + "";
+
+            } else {
+
+                h = temp / hper + "";
+
+            }
+
+            h += "小时";
+
+        }
+
+        temp = temp % hper;
+
+
+        if (temp / mper > 0) {
+
+            if (isFormat) {
+
+                m = temp / mper < 10 ? "0" + temp / mper : temp / mper + "";
+
+            } else {
+
+                m = temp / mper + "";
+
+            }
+
+            m += "分";
+
+        }
+
+        temp = temp % mper;
+
+
+        if (temp / sper > 0) {
+
+            if (isFormat) {
+
+                s = temp / sper < 10 ? "0" + temp / sper : temp / sper + "";
+
+            } else {
+
+                s = temp / sper + "";
+
+            }
+
+            s += "秒";
+
+        }
+
+        temp = temp % sper;
+
+        mi = temp + "";
+
+
+        if (isFormat) {
+
+            if (temp < 100 && temp >= 10) {
+
+                mi = "0" + temp;
+
+            }
+
+            if (temp < 10) {
+
+                mi = "00" + temp;
+
+            }
+
+        }
+
+
+        mi += "毫秒";
+
+        return h + m + s + mi;
 
     }
 }

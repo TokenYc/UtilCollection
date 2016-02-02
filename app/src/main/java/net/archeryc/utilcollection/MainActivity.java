@@ -19,7 +19,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         textView = (TextView) findViewById(R.id.text);
         Utils.wakeUpAndUnlock(this);
-        Toast.makeText(MainActivity.this, ""+Utils.isWifiConnected(this), Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, ""+Utils.getDeviceIMEI(this), Toast.LENGTH_SHORT).show();
+        Utils.goHome(this);
     }
 
 
