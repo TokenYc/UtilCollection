@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class Utils {
 
-    /**
+    /**检查权限并请求权限
      * 身体传感器
      * 日历
      * 摄像头
@@ -335,7 +335,7 @@ public class Utils {
 
 
     /**
-     * 获取当前版本号
+     * 获取应用当前版本号
      *
      * @param context
      * @return
